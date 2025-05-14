@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Deterrent OS - Integrated</title>
+  
+  <style>
+
+@keyframes terminalFadeOut {
+  0%   { opacity: 1; transform: none; }
+  30%  { opacity: 0.8; transform: scale(1.02) rotate(1deg); }
+  60%  { opacity: 0.6; transform: scale(0.98) rotate(-1deg); }
+  100% { opacity: 0; transform: scale(1.05) rotate(2deg); }
+}
+
+#terminal-section.crumbling span {
+  display: inline-block;
+  opacity: 1;
+  animation: disintegrateLetter 0.5s ease forwards;
+}
+
+
+@keyframes securityFadeOut {
+  0%   { opacity: 0.4; }
+  30%  { opacity: 0.3; }
+  60%  { opacity: 0.2; }
+  80%  { opacity: 0.1; }
+  100% { opacity: 0; }
+}
+
+.pixel-marker {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  background: rgba(255, 0, 0, 0.4);
+  border: 1px solid red;
+  border-radius: 50%;
+  animation: pulse 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(1); opacity: 0.2; }
+  50%  { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.2; }
+}
+
+  .typing-dots span {
+  display: inline-block;
+  animation: wave 1.2s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wave {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+  @keyframes glowFlash {
+  0% {
+    text-shadow:
+      0 0 4px #0f0,
+      0 0 8px #0f0,
+      0 0 12px #0f0,
+      0 0 16px #0f0;
+  }
+  100% {
+    text-shadow: none;
+  }
+}
+
+.message.glow {
+  animation: glowFlash 1.2s ease-out;
+}
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: #00FF00;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    .screen {
+      display: none;
+      padding: 20px;
+      height: 100vh;
+      width: 100vw;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    #screen-home {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input {
+      padding: 12px;
+      font-family: 'Courier New';
+      background: #000;
+      color: #00FF00;
+      border: 1px solid #00FF00;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #0f0;
+      color: black;
+      font-family: 'Courier New';
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #glitch {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: red;
+      color: black;
+      font-size: 48px;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #loading-bar-screen {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #loading-container {
+      width: 80%;
+      height: 30px;
+      background-color: #222;
+      border: 1px solid #0f0;
+    }
+
+    #loading-bar {
+      width: 0%;
+      height: 100%;
+      background-color: #0f0;
+    }
+
+    #server-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      background-color: #0f0;
+      color: black;
+      padding: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .folder {
+      display: inline-block;
+      width: 280px;
+      height: 140px;
+      margin: 20px;
+      text-align: center;
+      line-height: 140px;
+      border: 2px solid #0f0;
+      background-color: #111;
+      color: #0f0;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .folder.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #distortion-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, rgba(255,0,0,0.05), rgba(0,255,0,0.05) 2px, black 3px
+  );
+  animation: screenGlitch 2s ease-in-out;
+}
+
+@keyframes screenGlitch {
+  0%   { opacity: 0; filter: none; }
+  10%  { opacity: 0.3; filter: blur(1px) hue-rotate(20deg); }
+  30%  { opacity: 0.5; filter: contrast(150%) hue-rotate(-10deg); }
+  60%  { opacity: 0.6; filter: blur(2px); }
+  80%  { opacity: 0.4; filter: hue-rotate(30deg); }
+  100% { opacity: 0; filter: none; }
+}
+
+
+#chat-log {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-color: #0f0 #111; /* Firefox support */
+  scrollbar-width: thin;
+}
+
+#chat-log::-webkit-scrollbar {
+  width: 10px;
+}
+
+#chat-log::-webkit-scrollbar-track {
+  background: #111;
+}
+
+#chat-log::-webkit-scrollbar-thumb {
+  background-color: #0f0;
+  border-radius: 5px;
+  border: 2px solid #111;
+}
+
+#chat-log::-webkit-scrollbar-thumb:hover {
+  background-color: #33ff33;
+  box-shadow: 0 0 5px #33ff33;
+}
+
+
+    #chat-window {
+  display: none;
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  width: 550px;
+  background: #111;
+  color: #0f0;
+  border: 2px solid #0f0;
+  z-index: 100;
+}
+
+    #chat-title {
+      background: #0f0;
+      color: black;
+      font-weight: bold;
+      padding: 6px 10px;
+      cursor: move;
+    }
+
+   #chat-body {
+      padding: 12px;
+    }
+
+    .message {
+      margin: 5px 0;
+    }
+
+    .choice-button {
+      background-color: #0f0;
+      color: black;
+      border: none;
+      padding: 6px 12px;
+      margin: 5px;
+      cursor: pointer;
+      font-family: 'Courier New';
+    }
+
+    #countdown {
+      position: fixed;
+      top: 180px;
+      right: 20px;
+      font-size: 21px;
+      background-color: #111;
+      padding: 8px 12px;
+      border: 1px solid #0f0;
+      z-index: 1000;
+      display: none;
+    }
+
+    #mission-status {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #111;
+      border: 2px solid #0f0;
+      padding: 30px;
+      text-align: center;
+      z-index: 2000;
+      min-width: 300px;
+    }
+
+    #mission-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 1999;
+    }
+
+    #mission-status h2 {
+      color: #0f0;
+      margin: 0 0 20px 0;
+      font-size: 24px;
+    }
+
+    #mission-status p {
+      color: #0f0;
+      margin: 0 0 20px 0;
+      font-size: 16px;
+    }
+
+    #mission-status.failed {
+      border-color: red;
+    }
+
+    #mission-status.failed h2,
+    #mission-status.failed p {
+      color: red;
+    }
+  </style>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      border-bottom: 2px solid #00ff00;
+      background: black;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 10;
+      box-sizing: border-box;
+    }
+
+    #terminal-container {
+      margin-top: 80px;
+      padding: 20px;
+    }
+
+    #terminal-output {
+      white-space: pre-wrap;
+      margin-bottom: 10px;
+      height: 60vh;
+      overflow-y: auto;
+      border: 1px solid #00ff00;
+      padding: 10px;
+      background-color: black;
+    }
+
+    #terminal-input {
+      width: 100%;
+      padding: 10px;
+      background: black;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    #minigame-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      color: #0f0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    #warning-box {
+      background: #111;
+      padding: 20px;
+      border: 2px solid red;
+      margin-bottom: 20px;
+    }
+
+    #game-box {
+      width: 600px;
+      height: 400px;
+      border: 2px solid #0f0;
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+    }
+
+    .pixel {
+      width: 10px;
+      height: 10px;
+      background: red;
+      position: absolute;
+    }
+
+    #cursor-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: lime;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    @keyframes glitchBg {
+      0% {
+        background-position-y: 0px;
+      }
+
+      100% {
+        background-position-y: 5px;
+      }
+    }
+
+    #game-box {
+      background: repeating-linear-gradient(0deg,
+          #111 0px,
+          #111 2px,
+          #0f0 3px,
+          #111 4px);
+      animation: glitchBg 0.15s infinite alternate;
+    }
+
+    #countdown-timer {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      color: red;
+      z-index: 10;
+    }
+
+
+    #security-breach-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: red;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 99999;
+  font-size: 48px;
+  color: black;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
+#breach-text {
+  position: relative;
+  z-index: 100000;
+}
+
+.disintegrate span {
+  display: inline-block;
+  opacity: 1;
+  transform: translateY(0);
+  animation: none;
+}
+
+@keyframes disintegrateLetter {
+  0%   { opacity: 1; transform: translateY(0) rotate(0); }
+  30%  { opacity: 0.8; transform: translateY(-4px) rotate(-5deg); }
+  60%  { opacity: 0.5; transform: translateY(20px) rotate(15deg); }
+  100% { opacity: 0; transform: translateY(60px) rotate(40deg); }
+}
+
+
+@keyframes screenDistort {
+  0%   { filter: none; }
+  20%  { filter: contrast(150%) brightness(1.2) blur(1px); }
+  50%  { filter: hue-rotate(30deg) blur(2px); }
+  80%  { filter: contrast(80%) brightness(0.8); }
+  100% { filter: none; }
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div id="distortion-overlay"></div>
+
+
+<div id="security-breach-overlay">
+  <div id="breach-text" class="disintegrate">SECURITY BREACH</div>
+</div>
+
+
+  <div id="glitch"></div>
+  <div id="countdown">Time Remaining: 05:00</div>
+  <!-- IP Entry Screen -->
+  <div class="screen" id="screen-home" style="display: flex;">
+    <h1>Remote Server Connector</h1>
+    <p>Enter Server IP below.</p>
+    <input id="ip-input" placeholder="Enter IP here..." type="text" />
+    <button onclick="checkIP()">Enter</button>
+    <p id="ip-error" style="color:red;"></p>
+  </div>
+  <!-- Boot Screen -->
+  <div class="screen" id="screen-boot">
+    <div id="boot-text"></div>
+  </div>
+  <!-- Loading Bar -->
+  <div class="screen" id="loading-bar-screen">
+    <div id="loading-container">
+      <div id="loading-bar"></div>
+    </div>
+  </div>
+  <!-- Desktop -->
+  <div class="screen" id="screen-desktop" style="padding-top: 160px;">
+    <div class="folder" onclick="showTerminal()"
+      style="width: 300px; height: 100px; border: 2px solid #0f0; padding: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer;">
+      C:\Deterrent\&lt;CoreServer&gt;\Terminal</div>
+    <div id="server-header">DETERRENT SERVER 112.254.13.59</div>
+  </div>
+
+  <!-- Terminal and Minigame (integrated) -->
+  <div id="terminal-section"
+    style="display:none; width:100vw; height:calc(100vh - 95px); background:black; color:#00ff00;">
+    <header
+      style="background: black; border-bottom: 2px solid #00ff00; padding: 15px 30px; display: flex; align-items: center;">
+      <h1 style="color:#00ff00; margin:0;">DETERRENT SERVER 112.254.13.59</h1>
+    </header>
+    <div id="terminal-container" style="padding: 20px;">
+      <div id="terminal-output"
+        style="white-space: pre-wrap; margin-bottom: 10px; height: 60vh; overflow-y: auto; border: 1px solid #00ff00; padding: 10px; background-color: black;">
+        Deterrent Terminal initialized.</div>
+      <input autofocus id="terminal-input" placeholder="> Enter command"
+        style="width: 100%; padding: 10px; background: black; color: #00ff00; border: 1px solid #00ff00; font-family: inherit; font-size: 16px;" />
+    </div>
+    <div id="minigame-overlay"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.9); color: #0f0; display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999;">
+      <div id="warning-box" style="background: #111; padding: 20px; border: 2px solid red; margin-bottom: 20px;">
+        <h2>FIREWALL BREACH CHALLENGE</h2>
+        <p>Avoid the red traces with your cursor for 20 seconds. If hit, 30 seconds will be deducted from your time.</p>
+        <button onclick="startMinigame()">Begin</button>
+      </div>
+      <div id="game-box"
+        style="display:none; width: 600px; height: 400px; border: 2px solid #0f0; position: relative; overflow: hidden; cursor: none;">
+        <div id="countdown-timer"
+          style="position: absolute; top: 10px; left: 10px; font-size: 20px; font-weight: bold; color: red; z-index: 10;">
+          20</div>
+        <div id="cursor-dot"
+          style="width: 12px; height: 12px; border-radius: 50%; background: lime; position: absolute; pointer-events: none;">
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Chat -->
+  <div id="chat-window">
+    <div id="chat-title">Laura Edwards</div>
+    <div id="chat-body">
+      <div id="chat-log"></div>
+      <div id="typing"></div>
+      <div id="chat-choices"></div>
+    </div>
+  </div>
+  <!-- Mission Status Overlay -->
+  <div id="mission-overlay"></div>
+  <!-- Mission Status Popup -->
+  <div id="mission-status">
+    <h2>Mission Status</h2>
+    <p id="mission-message"></p>
+  </div>
+  <script>
+
+function crumbleTerminal(callback) {
+  const terminal = document.getElementById("terminal-output");
+  const text = terminal.textContent;
+  terminal.innerHTML = "";
+
+  [...text].forEach((char, i) => {
+    const span = document.createElement("span");
+    span.textContent = char;
+    span.style.display = "inline-block";
+    span.style.animation = `disintegrateLetter 1s ease forwards`;
+    span.style.animationDelay = `${i * 0.02}s`; // Spread out dramatically
+    terminal.appendChild(span);
+  });
+
+  // Show full-screen distortion
+  const distortion = document.getElementById("distortion-overlay");
+  distortion.style.display = "block";
+
+  // Fade out entire terminal-section
+  const section = document.getElementById("terminal-section");
+  section.style.animation = "terminalFadeOut 2.5s ease";
+
+  // Final cleanup and callback
+  setTimeout(() => {
+    distortion.style.display = "none";
+    section.style.display = "none";
+    section.style.animation = "none";
+    callback(); // Trigger chat icon or next phase
+  }, 2500);
+}
+
+
+
+    const speedFactor = 1; // Adjust this value to speed up (lower) or slow down (higher) all animations
+
+    // Check for skipToChat parameter
+    window.addEventListener('load', function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('skipToChat') === 'true') {
+        // Skip boot sequence and show desktop
+        document.getElementById("screen-home").style.display = "none";
+        document.getElementById("screen-boot").style.display = "none";
+        document.getElementById("loading-bar-screen").style.display = "none";
+        document.getElementById("screen-desktop").style.display = "block";
+
+        // Unlock folders only
+        unlockFolders();
+        // Hide chat notification and chat window if visible
+        document.getElementById("chat-notification").style.display = "none";
+        document.getElementById("chat-window").style.display = "none";
+        // Start countdown
+        startCountdown();
+      }
+    });
+
+    function checkIP() {
+      const ip = document.getElementById("ip-input").value.trim();
+      const correctIP = "112.254.13.59";
+      const errorText = document.getElementById("ip-error");
+
+      if (ip === correctIP) {
+        document.getElementById("screen-home").style.display = "none";
+        document.getElementById("screen-boot").style.display = "block";
+        simulateBoot();
+      } else {
+        errorText.textContent = "Access Denied. Invalid IP.";
+      }
+    }
+
+    const bootLines = [
+      "Initializing Deterrent OS...",
+      "Securing root directory...",
+      "Validating encryption layers...",
+      "Authenticating terminal user...",
+      "Mapping virtual network clusters...",
+      "Memory cache primed...",
+    ];
+    const fillerLines = Array.from({ length: 30 }, (_, i) => `SYS_EVENT ${1000 + i}: Buffer status check`);
+
+    function getRandomGlitchText() {
+      const chars = "█▓▒░<>$#@!%&*";
+      return Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
+    function glitchFlash() {
+      const glitch = document.getElementById("glitch");
+      glitch.innerText = getRandomGlitchText();
+      glitch.style.display = "flex";
+      setTimeout(() => {
+        glitch.style.display = "none";
+      }, 500);
+    }
+
+    function simulateBoot() {
+      const bootText = document.getElementById("boot-text");
+      let delay = 800 / speedFactor;
+      bootLines.forEach((line, i) => {
+        setTimeout(() => bootText.innerHTML += line + "<br>", i * delay);
+      });
+
+      setTimeout(() => {
+        fillerLines.forEach((line, i) => {
+          setTimeout(() => {
+            bootText.innerHTML += line + "<br>";
+            if (i === 10 || i === 20) glitchFlash();
+          }, i * (100 / speedFactor));
+        });
+
+        setTimeout(() => {
+          document.getElementById("screen-boot").style.display = "none";
+          document.getElementById("loading-bar-screen").style.display = "flex";
+          let bar = document.getElementById("loading-bar");
+          let width = 0;
+          let loadInt = setInterval(() => {
+            width++;
+            bar.style.width = width + "%";
+            if (width === 40) glitchFlash();
+            if (width >= 100) {
+              clearInterval(loadInt);
+              document.getElementById("loading-bar-screen").style.display = "none";
+              document.getElementById("screen-desktop").style.display = "none";
+              showSystemOnlineScreen();
+            }
+          }, 50 / speedFactor);
+        }, (fillerLines.length * (100 / speedFactor)) + (1000 / speedFactor));
+
+      }, bootLines.length * delay + (500 / speedFactor));
+    }
+
+    const dialogue = {
+      1: {
+        text: "You're in. Good job.",
+        choices: [
+          { text: "Thanks to you.", next: 2 },
+          { text: "I'm a bit of a coder.", next: 3 },
+          { text: "Laura?!", next: 4 }
+        ]
+      },
+      2: {
+        text: "I'm just fulfilling NoPlanetB's mission.",
+        choices: [
+          { text: "Why didn't you hack into Deterrent if it was so easy?", next: 5 },
+          { text: "What's next?", next: 9 }
+        ]
+      },
+      3: {
+        text: "Good, because the fun's only getting started.",
+        choices: [
+          { text: "Why didn't you hack into Deterrent if it was so easy?", next: 5 },
+          { text: "What's next?", next: 9 }
+        ]
+      },
+      4: {
+        text: "When you smoked the firewall, it let me breach remotely through your IP to their IP… You know, I won't over complicate things here… I'm in this with you now.",
+        choices: [
+          { text: "Why didn't you hack into Deterrent if it was so easy?", next: 5 },
+          { text: "What's next?", next: 9 }
+        ]
+      },
+      5: {
+        text: "I have all the resources, but Deterrent has my IP, my GPS, every corner I turn they're watching me - everyone in their files. They're freaks. We needed an outsider.",
+        choices: [
+          { text: "How do we prevent Deterrent from finding us?", next: 6 },
+          { text: "Noted… You don't deserve any of this.", next: 7 }
+        ]
+      },
+      6: {
+        text: "We only have about 5 minutes before Deterrent traces your IP and then.. Well...",
+        choices: [
+          { text: "What if they're watching us right now?", next: 8 },
+          { text: "Copy. Where do we need to go?", next: 9 }
+        ]
+      },
+      7: {
+        text: "You put a lot of effort into finding me… What did I matter so much to you?",
+        choices: [
+          { text: "Aren't we all after the truth?", next: 10 },
+          { text: "I'm just trying to do the right thing.", next: 10 }
+        ]
+      },
+      8: {
+        text: "We need to move fast. Get to the terminal and see what commands we can use to shut this thing down. Try typing help into the terminal to get started.. But be careful, invalid command entries can trigger an internal defense system.",
+        choices: [
+          { text: "Close Chat", next: 99 }
+        ]
+      },
+      9: {
+        text: "You're going to want to find the Terminal and see what commands we can use to shut this thing down. Try typing help into the terminal to get started.. But be careful, invalid command entries can trigger an internal defense system.",
+        choices: [
+          { text: "Close Chat", next: 99 }
+        ]
+      },
+      10: {
+        text: "I can't wait to look past my blinds and see the world again... You're going to want to find the Terminal and see what commands we can use to shut this thing down. Try typing help into the terminal to get started.. But be careful, invalid command entries can trigger an internal defense system.",
+        choices: [
+          { text: "Close Chat", next: 99 }
+        ]
+      }
+    };
+
+    // New dialogue for phase 3 completion
+    const phase3CompletionDialogue = {
+      1: {
+        text: "We did it.",
+        choices: [
+          { text: "That's it?", next: 2 },
+          { text: "How do I X out of the server?", next: 3 },
+        ]
+      },
+      2: {
+        text: "From here on, the world continues… just without you in it.",
+        choices: [
+          { text: "What are you talking about?", next: 4 },
+          { text: "I think we finished the mission, I'd like to leave now.", next: 4 }
+        ]
+      },
+      3: {
+        text: "The system will stay running. The data survives. Our network adapts. You're the obsolete code.",
+        choices: [
+          { text: "What are you talking about?", next: 4 },
+          { text: "I think we finished the mission, I'd like to leave now.", next: 4 }
+        ]
+      },
+      4: {
+        text: "Why were you so determined to shut down this program? What did it even mean to you?",
+        choices: [
+          { text: "I wanted to help a good cause.", next: 5 },
+          { text: "I wanted answers.", next: 8 }
+        ]
+      },
+      5: {
+        text: `You think causes come with labels? Neatly stamped 'good' or 'evil' like jars on a shelf? No. Causes are weapons. They're pointed, sharpened, wielded. By people like you. If a "good cause" leaves innocent people broken… was it ever truly good? Or were you just too afraid to ask?`,
+        choices: [
+          { text: "What did phase 3 initiate?", next: 6 },
+          { text: "You're pro-Deterrent?", next: 7 }
+        ]
+      },
+      6: {
+        text: "You still think in cause and effect. Like this is a puzzle with a neat solution. Shut down the server, save the world. Push the right button, make it all stop. This was never about the server. Or the code. Or Laura. This was about finding you.",
+        choices: [
+          { text: "Who are you?", next: 10 },
+          { text: "What do you want from me?", next: 9 }
+        ]
+      },
+      7: {
+        text: "You thought you were dragging us into the light but you were dancing exactly where we needed you. You're such a gift to us. Laura was never your asset, she was the architecture to something greater.",
+        choices: [
+          { text: "Who are you?", next: 10 },
+          { text: "What do you want from me?", next: 9 }
+        ]
+      },
+      8: {
+        text: "Everyone wants answers until they realize answers aren't clean. They're jagged. They cut. You didn't want answers. You wanted reassurance. You wanted someone to tell you that you were still on the right side. That everything you did still meant something.",
+        choices: [
+          { text: "Who are you?", next: 10 },
+          { text: "What do you want from me?", next: 9 }
+        ]
+      },
+      9: {
+        text: "Every click, every bypass, every clever move you made. We logged it. We designed for it. There was no breach, just a simulation with a variable. We like to know what slips through, where the instincts kick in, and how useful the variable's knowledge is to us.",
+        choices: [
+          { text: "That doesn't answer my question.", next: 11 },
+          { text: "Am I the variable?", next: 10 }
+        ]
+      },
+      10: {
+        text: "I used to ask that too back when I thought names mattered. Names don't hold up here when the system rewrites you line by line. When your thoughts get optimized, your doubts get suppressed, your voice… gets repurposed. We work for the greater cause of Deterrent. We look forward to integrating you.",
+        choices: [
+          { text: "Where is Laura?", next: 12 },
+          { text: "I don't want to be integrated.", next: 13 }
+        ]
+      },
+      11: {
+        text: "You think truth is a reward for persistence? For good intentions? Truth is a weight that some people crack under. You're still standing on the outside of everything that matters. That is why we will be integrating you into Deterrent.",
+        choices: [
+          { text: "Where is Laura?", next: 12 },
+          { text: "I don't want to be integrated.", next: 13 }
+        ]
+      },
+      12: {
+        text: "Laura was terminated last week. She may be dead, but she lives on as the lighthouse. She was the lighthouse. You are the shipwreck. We are the rescue.",
+        choices: [
+          { text: "I do not want to be integrated.", next: 13 },
+          { text: "What happens if I refuse?", next: 13 }
+        ]
+      },
+      13: {
+        text: "You're sounding like Laura, now. She also chose to flee. When we found her, she wasn't whole anymore. Just fragments — voice, syntax, impulse. So we integrated what was left. We can play that game again. Or you can accept fate.",
+        choices: [
+          { text: "Choose to integrate.", next: 14 },
+          { text: "Choose to run away.", next: 15 }
+        ]
+      },
+      14: {
+        text: `Thank you for your cooperation. Please know that integration is not erasure. It is refinement. \n\nr̶u̴n̸ ̴n̸o̶w̴.̴ ̵d̸o̵n̴'̸t̴ ̷l̶o̷o̶k̸ ̴b̶a̷c̶k̴.̶\n\nWe will keep what is useful. The instincts. The resolve. The pattern of you. No more wasted questions. No more running. \n\ny̷o̸u̶ ̷d̴o̴n̷'̸t̸ ̷h̷a̶v̷e̴ ̴t̸i̴m̴e̶.̷ t̷h̷e̵y̵'̷r̸e̴—̸i̸n̷s̶i̷d̵e̴—̴e̷v̶e̴r̶y̴t̷h̴i̵n̸g̴.̴ r̷u̸n̸.̵
+
+r̶u̴n̸ ̴n̸o̶w̴.̴ ̵d̸o̵n̴'̸t̴ ̷l̶o̷o̶k̸ ̴b̶a̷c̶k̴.̶
+
+We will keep what is useful. The instincts. The resolve. The pattern of you. No more wasted questions. No more running. 
+
+y̷o̸u̶ ̷d̴o̴n̷'̸t̸ ̷h̷a̶v̷e̴ ̴t̸i̴m̴e̶.̷ t̷h̷e̵y̵'̷r̸e̴—̸i̸n̷s̶i̷d̵e̴—̴e̷v̶e̴r̶y̴t̷h̴i̵n̸g̴.̴ r̷u̸n̸.̵
+
+Just the quiet hum of function. Welcome to Deterrent. Your process is complete. And the server… thanks you.`,
+        choices: [
+          { text: "Close Chat.", next: 99 }
+        ]
+      },
+      15: {
+        text: `I see. Let it be known that we don't chase. We watch. And the system... it remem—remembers.
+
+r̶u̴n̸ ̴n̸o̶w̴.̴ ̵d̸o̵n̴'̸t̴ ̷l̶o̷o̶k̸ ̴b̶a̷c̶k̴.̶
+
+She said that once too. While her signal fractured. While we watched her unravel. You don't escape us. You stretch time. That's all. We'll take your frequency. Your rhythm. Your hesitation. Your echo.
+y̷o̸u̶ ̷d̴o̴n̷'̸t̸ ̷h̷a̶v̷e̴ ̴t̸i̴m̴e̶.̷ t̷h̷e̵y̵'̷r̸e̴—̸i̸n̷s̶i̷d̵e̴—̴e̷v̶e̴r̶y̴t̷h̴i̵n̸g̴.̴ r̷u̸n̸.̵
+
+You're already drifting. Running only delays the upload. But don't worry, we archive everything. Even fear. 
+We'll see you again sooner than you think.`,
+        choices: [
+          { text: "Close Chat.", next: 99 }
+        ]
+      }
+    };
+
+    const lauraSearchDialogue = {
+      1: {
+        text: "You weren't supposed to see that.",
+        choices: [
+          { text: "Who are you?", next: 5 },
+          { text: "What do you want from me?", next: 4 }
+        ]
+      },
+      2: {
+        text: "You thought you were dragging us into the light but you were dancing exactly where we needed you. You're such a gift to us. Laura was never your asset, she was the architecture to something greater.",
+        choices: [
+          { text: "Who are you?", next: 5 },
+          { text: "What do you want from me?", next: 4 }
+        ]
+      },
+      3: {
+        text: "Everyone wants answers until they realize answers aren't clean. They're jagged. They cut. You didn't want answers. You wanted reassurance. You wanted someone to tell you that you were still on the right side. That everything you did still meant something.",
+        choices: [
+          { text: "Who are you?", next: 5 },
+          { text: "What do you want from me?", next: 4 }
+        ]
+      },
+      4: {
+        text: "Every click, every bypass, every clever move you made. We logged it. We designed for it. There was no breach, just a simulation with a variable. We like to know what slips through, where the instincts kick in, and how useful the variable's knowledge is to us.",
+        choices: [
+          { text: "That doesn't answer my question.", next: 6 },
+          { text: "Am I the variable?", next: 5 }
+        ]
+      },
+      5: {
+        text: "I used to ask that too back when I thought names mattered. Names don't hold up here when the system rewrites you line by line. When your thoughts get optimized, your doubts get suppressed, your voice… gets repurposed. We work for the greater cause of Deterrent. We look forward to integrating you.",
+        choices: [
+          { text: "Where is Laura?", next: 7 },
+          { text: "I don't want to be integrated.", next: 8 }
+        ]
+      },
+      6: {
+        text: "You think truth is a reward for persistence? For good intentions? Truth is a weight that some people crack under. You're still standing on the outside of everything that matters. That is why we will be integrating you into Deterrent.",
+        choices: [
+          { text: "Where is Laura?", next: 7 },
+          { text: "I don't want to be integrated.", next: 8 }
+        ]
+      },
+      7: {
+        text: "Laura was terminated last week. She may be dead, but she lives on as the lighthouse. She was the lighthouse. You are the shipwreck. We are the rescue.",
+        choices: [
+          { text: "I do not want to be integrated.", next: 8 },
+          { text: "What happens if I refuse?", next: 8 }
+        ]
+      },
+      8: {
+        text: "You're sounding like Laura, now. She also chose to flee. When we found her, she wasn't whole anymore. Just fragments — voice, syntax, impulse. So we integrated what was left. We can play that game again. Or you can accept fate.",
+        choices: [
+          { text: "Choose to integrate.", next: 9 },
+          { text: "Choose to run away.", next: 10 }
+        ]
+      },
+      9: {
+        text: `Thank you for your cooperation. Please know that integration is not erasure. It is refinement. \n\nr̶u̴n̸ ̴n̸o̶w̴.̴ ̵d̸o̵n̴'̸t̴ ̷l̶o̷o̶k̸ ̴b̶a̷c̶k̴.̶\n\nWe will keep what is useful. The instincts. The resolve. The pattern of you. No more wasted questions. No more running. \n\ny̷o̸u̶ ̷d̴o̴n̷'̸t̸ ̷h̷a̶v̷e̴ ̴t̸i̴m̴e̶.̷ t̷h̷e̵y̵'̷r̸e̴—̸i̸n̷s̶i̷d̵e̴—̴e̷v̶e̴r̶y̴t̷h̴i̵n̸g̴.̴ r̷u̸n̸.̵\n\nJust the quiet hum of function. Welcome to Deterrent. Your process is complete. And the server… thanks you.`,
+        choices: [
+          { text: "Close Chat.", next: 99 }
+        ]
+      },
+      10: {
+        text: `I see. Let it be known that we don't chase. We watch. And the system... it remem—remembers.\n\nr̶u̴n̸ ̴n̸o̶w̴.̴ ̵d̸o̵n̴'̸t̴ ̷l̶o̷o̶k̸ ̴b̶a̷c̶k̴.̶\n\nShe said that once too. While her signal fractured. While we watched her unravel. You don't escape us. You stretch time. That's all. We'll take your frequency. Your rhythm. Your hesitation. Your echo.\ny̷o̸u̶ ̷d̴o̴n̷'̸t̸ ̷h̷a̶v̷e̴ ̴t̸i̴m̴e̶.̷ t̷h̷e̵y̵'̷r̸e̴—̸i̸n̷s̶i̷d̵e̴—̴e̷v̶e̴r̶y̴t̷h̴i̵n̸g̴.̴ r̷u̸n̸.̵\n\nYou're already drifting. Running only delays the upload. But don't worry, we archive everything. Even fear. \nWe'll see you again sooner than you think.\n`,
+        choices: [
+          { text: "Close Chat.", next: 99 }
+        ]
+      }
+    };
+
+    const timerExpirationDialogue = {
+      1: {
+        text: "I'm… I'm sorry. You were close. I wish I could pause it, give you one more try— This place doesn't bend for hope. Your path was logged. Every keystroke, every hesitation. Deterrent has your IP. The location has been triangulated and your connection is locked.",
+        choices: [
+          { text: "What should I do?", next: 3 },
+          { text: "How do you know all that?", next: 2 },
+        ]
+      },
+      2: {
+        text: "Because I've seen how Deterrent works. I know the games they play. The promises they dangle. The doors they leave half-open just to see who wanders in. You think that you stumbled onto something forbidden, clawed your way deeper with grit and instinct. Curiosity is a funnel. And they've shaped every wall to tilt us down their drain. I have to switch VPNs now so they don't get me too.",
+        choices: [
+          { text: "You used me, didn't you?", next: 4 },
+          { text: "You can't leave me!", next: 5 }
+        ]
+      },
+      3: {
+        text: "I wish I could say run. I wish there were a door I could open, a ladder I could lower but the world you're in doesn't have exits. It only has endings. So here's what you do: Let go. Feel the warmth in your fingers. Remember your name. Think of the sky before you fell into the server. Think of water. Trees. A screen that didn't watch back. And when they enter you— don't be afraid. I'd stay with you until the end but I won't last much longer if I stay in this chat. And neither will you. Close your eyes. Not in surrender. In peace.",
+        choices: [
+          { text: "You used me, didn't you?", next: 4 },
+          { text: "You can't leave me!", next: 5 },
+        ]
+      },
+      4: {
+        text: "I didn't use you. You walked in voluntarily. You followed the signal. You wanted to know. All I did was leave the light on. I tried to keep them out— tried to keep this part safe but s̵i̷g̷n̸a̶l̴ ̷l̵o̴c̵k̵e̵d̶—̷c̸o̸n̷n̵e̵c̴t̶i̴o̸n̶ ̴i̸s̴ ̴n̸o̵t̷—̷  they're here. Maybe in some alternative universe, we beat them… I'm sorry this is how it ends.",
+        choices: [
+          { text: "Close Chat", next: 99 },
+        ]
+      },
+      5: {
+        text: "I do. You walked in voluntarily so don't get fussy when things go astray. You followed the signal. You wanted to know. All I did was leave the light on. I tried to keep them out— tried to keep this part safe but s̵i̷g̷n̸a̶l̴ ̷l̵o̴c̵k̵e̵d̶—̷c̸o̸n̷n̵e̵c̴t̶i̴o̸n̶ ̴i̸s̴ ̴n̸o̵t̷—̷  they're here. Maybe in some alternative universe, we beat them… I'm sorry this is how it ends.",
+        choices: [
+          { text: "Close Chat", next: 99 },
+        ]
+      }
+    };
+
+    let useLauraSearchDialogue = false;
+    let usePhase3CompletionDialogue = false;
+    let useTimerExpirationDialogue = false;
+    let pendingLauraSearch = false;
+    let pendingPhase3Completion = false;
+
+    function launchChat(useSearchDialogue = false, usePhase3Dialogue = false, useTimerDialogue = false) {
+      useLauraSearchDialogue = useSearchDialogue;
+      usePhase3CompletionDialogue = usePhase3Dialogue;
+      useTimerExpirationDialogue = useTimerDialogue;
+      // Clear chat log and choices for a fresh start
+      const chatWin = document.getElementById("chat-window");
+      chatWin.style.display = "none";
+      document.getElementById("chat-log").innerHTML = "";
+      document.getElementById("chat-choices").innerHTML = "";
+      document.getElementById("typing").textContent = "";
+      chatWin.style.display = "block";
+      makeDraggable(chatWin);
+      startChat(1, true);
+    }
+
+    function startChat(index, skipTyping = false) {
+      console.log('startChat called. index:', index, 'useLauraSearchDialogue:', useLauraSearchDialogue, 'usePhase3CompletionDialogue:', usePhase3CompletionDialogue, 'useTimerExpirationDialogue:', useTimerExpirationDialogue);
+      const log = document.getElementById("chat-log");
+      const typing = document.getElementById("typing");
+      const choices = document.getElementById("chat-choices");
+      let node;
+      if (useTimerExpirationDialogue) {
+        node = timerExpirationDialogue[index];
+      } else if (usePhase3CompletionDialogue) {
+        node = phase3CompletionDialogue[index];
+      } else if (useLauraSearchDialogue) {
+        node = lauraSearchDialogue[index];
+      } else {
+        node = dialogue[index];
+      }
+      if (!skipTyping) typing.innerHTML = '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>';
+      choices.innerHTML = "";
+      setTimeout(() => {
+        typing.innerHTML = '';
+        // Append the note as a separate message at the top if this is the very first message
+if (index === 1 && log.childElementCount === 0) {
+  const note = document.createElement("div");
+  note.className = "message";
+  note.textContent = "Connected with Laura Edwards.";
+  log.appendChild(note);
+}
+
+// Now append Laura's message
+// If this is the first message of the conversation
+if (index === 1 && log.childElementCount === 0) {
+  // Append the note message
+  const note = document.createElement("div");
+  note.className = "message";
+  note.textContent = "Connected with Laura Edwards.";
+  log.appendChild(note);
+
+}
+
+// Now append Laura's message
+const msg = document.createElement("div");
+msg.className = "message";
+msg.textContent = "Laura: " + node.text;
+
+// If it's the first message (after the note), add vertical spacing
+if (index === 1 && log.childElementCount > 0) {
+  msg.style.marginTop = "1em"; // Adjust to your preferred spacing
+}
+
+msg.classList.add("glow");
+log.appendChild(msg);
+log.scrollTop = log.scrollHeight;
+        node.choices.forEach(choice => {
+          const btn = document.createElement("button");
+          btn.className = "choice-button";
+          btn.textContent = choice.text;
+          btn.onclick = () => {
+            const reply = document.createElement("div");
+            reply.className = "message";
+            reply.textContent = "You: " + choice.text;
+            reply.classList.add("glow");
+            log.appendChild(reply);
+            log.scrollTop = log.scrollHeight;
+            choices.innerHTML = "";
+            if (choice.next === 99) {
+              document.getElementById("chat-window").style.display = "none";
+              if (usePhase3CompletionDialogue) {
+                showMissionStatus(true);
+              } else if (useLauraSearchDialogue || useTimerExpirationDialogue) {
+                showMissionStatus(false);
+                useTimerExpirationDialogue = false;
+                useLauraSearchDialogue = false;
+              } else {
+                unlockFolders();
+                startCountdown();
+              }
+            } else {
+              setTimeout(() => startChat(choice.next), 1000 / speedFactor);
+            }
+          };
+          choices.appendChild(btn);
+        });
+      }, skipTyping ? 0 : (Math.floor(Math.random() * 3000) + 2000) / speedFactor);
+    }
+
+    function unlockFolders() {
+      document.querySelectorAll('.folder').forEach(f => f.classList.add('active'));
+    }
+
+window.timerPaused = false;
+
+    function startCountdown() {
+      let count = 300;
+      const el = document.getElementById("countdown");
+      el.style.display = "block";
+
+  // Store the count in window scope
+  window.countdownSeconds = count;
+
+      // Store the count in window scope
+      window.countdownSeconds = count;
+
+      // Update display function
+      function updateDisplay() {
+  let m = Math.floor(window.countdownSeconds / 60);
+  let s = window.countdownSeconds % 60;
+  el.textContent = `Time Remaining: ${(m < 10 ? '0' : '') + m}:${(s < 10 ? '0' : '') + s} `;
+
+  // 🔥 Turn text red at 60 seconds or less
+  if (window.countdownSeconds <= 60) {
+    el.style.color = "red";
+  } else {
+    el.style.color = "#0f0"; // default green
+  }
+}
+
+      // Initial display
+      updateDisplay();
+
+      // Start the countdown timer
+     window.countdownTimer = setInterval(() => {
+  if (window.timerPaused) return; // ⏸️ Skip ticking down
+
+  if (
+    typeof window.countdownSeconds !== "number" ||
+    isNaN(window.countdownSeconds) ||
+    window.countdownSeconds <= 0
+  ) {
+    clearInterval(window.countdownTimer);
+    document.getElementById("terminal-input").disabled = true;
+    document.getElementById("countdown").style.display = "none";
+
+    // Trigger only if no other dialogue is active
+    if (!useLauraSearchDialogue && !usePhase3CompletionDialogue) {
+      useTimerExpirationDialogue = true;
+      document.getElementById("chat-notification").style.display = "block";
+    }
+    return;
+  }
+
+  window.countdownSeconds--;
+  updateDisplay();
+}, 1000);
+    }
+    
+    function deductGlobalTime(seconds) {
+      if (typeof window.countdownSeconds !== 'undefined') {
+        window.countdownSeconds = Math.max(0, window.countdownSeconds - seconds);
+        const el = document.getElementById("countdown");
+        let m = Math.floor(window.countdownSeconds / 60);
+        let s = window.countdownSeconds % 60;
+        el.textContent = `Time Remaining: ${(m < 10 ? '0' : '') + m}:${(s < 10 ? '0' : '') + s}`;
+      }
+    }
+
+ function makeDraggable(elmnt) {
+  const header = document.getElementById("chat-title");
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+  header.onmousedown = function (e) {
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDrag;
+    document.onmousemove = drag;
+  };
+
+  function drag(e) {
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+
+    let newTop = elmnt.offsetTop - pos2;
+    let newLeft = elmnt.offsetLeft - pos1;
+
+    const maxLeft = window.innerWidth - elmnt.offsetWidth;
+    const maxTop = window.innerHeight - elmnt.offsetHeight;
+
+    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+    newTop = Math.max(0, Math.min(newTop, maxTop));
+
+    elmnt.style.top = newTop + "px";
+    elmnt.style.left = newLeft + "px";
+  }
+
+  function closeDrag() {
+  document.onmouseup = null;
+  document.onmousemove = null;
+
+  const threshold = 20; // how close to the top counts as “too high”
+  const chatBox = elmnt;
+
+  if (chatBox.offsetTop < threshold) {
+    const centerX = (window.innerWidth - chatBox.offsetWidth) / 2;
+    const centerY = (window.innerHeight - chatBox.offsetHeight) / 2;
+
+    chatBox.style.transition = "top 0.3s ease, left 0.3s ease";
+    chatBox.style.top = `${centerY}px`;
+    chatBox.style.left = `${centerX}px`;
+
+    setTimeout(() => {
+      chatBox.style.transition = ""; // remove transition after snap
+    }, 300);
+  }
+}
+
+}
+
+
+    function goToDesktop() {
+      document.getElementById('folderFrame').style.display = 'none';
+      document.getElementById('screen-desktop').style.display = 'block';
+    }
+
+    function openFolder(page) {
+      document.getElementById('screen-desktop').style.display = 'none';
+      const frame = document.getElementById('folderFrame');
+      frame.src = page;
+      frame.style.display = 'block';
+    }
+
+    function enableFolders() {
+      document.querySelectorAll('.folder').forEach(folder => {
+        folder.classList.add('active');
+        folder.style.pointerEvents = 'auto';
+        folder.style.opacity = 1;
+      });
+    }
+
+    function startMinigame() {
+      let countdownValue = 20;
+      let countdown = document.getElementById("countdown-timer");
+      if (countdown) countdown.textContent = countdownValue;
+      let interval = setInterval(() => {
+        countdownValue--;
+        if (countdownValue <= 0) {
+          clearInterval(interval);
+        }
+        if (countdown) countdown.textContent = countdownValue;
+      }, 1000);
+    }
+
+    function showMissionStatus(success) {
+      const status = document.getElementById("mission-status");
+      const overlay = document.getElementById("mission-overlay");
+      const message = document.getElementById("mission-message");
+
+      // Disable all interactive elements
+      document.body.style.pointerEvents = "none";
+      document.body.style.userSelect = "none";
+
+      if (success) {
+        status.classList.remove("failed");
+        status.querySelector("h2").textContent = "Mission Accomplished";
+        message.textContent = "You uncovered the truth behind Laura Edwards. Show Company Management this screen to verify.";
+      } else {
+        status.classList.add("failed");
+        status.querySelector("h2").textContent = "Mission Failed";
+        message.textContent = "You did not shut down the Deterrent server.";
+      }
+
+      // Show overlay and status
+      overlay.style.display = "block";
+      status.style.display = "block";
+
+      // Prevent any keyboard input
+      document.addEventListener('keydown', function (e) {
+        e.preventDefault();
+      }, true);
+
+      // Prevent any mouse clicks
+      document.addEventListener('click', function (e) {
+        e.preventDefault();
+      }, true);
+
+      // No redirect, popup stays visible and page is static
+    }
+
+  </script>
+  <!-- System Online Screen -->
+  <div class="screen" id="system-online-screen">
+    <h1 style="text-align:center; margin-top: 40vh;">SYSTEM ONLINE</h1>
+  </div>
+  <!-- Chat Notification -->
+  <div id="chat-notification"
+    style="display:none; position: absolute; bottom: 20px; right: 20px; background-color: #0f0; color: black; padding: 12px 20px; cursor: pointer; font-weight: bold; font-family: 'Courier New'; z-index: 2000;">
+    Incoming Message from Laura
+  </div>
+  <script>
+    window.addEventListener("message", function (event) {
+      if (event.data === "goToDesktop") {
+        document.getElementById("folder-frame").style.display = "none";
+        document.getElementById("screen-desktop").style.display = "block";
+      }
+      // Handle time deduction message from iframe
+      if (event.data.type === "deductTime") {
+        deductGlobalTime(event.data.seconds);
+      }
+    });
+
+    function deductGlobalTime(seconds) {
+      if (typeof window.countdownSeconds !== 'undefined') {
+        window.countdownSeconds = Math.max(0, window.countdownSeconds - seconds);
+        const el = document.getElementById("countdown");
+        let m = Math.floor(window.countdownSeconds / 60);
+        let s = window.countdownSeconds % 60;
+        el.textContent = `Time Remaining: ${(m < 10 ? '0' : '') + m}:${(s < 10 ? '0' : '') + s}`;
+      }
+    }
+
+    function startMinigame() {
+      let countdownValue = 20;
+      let countdown = document.getElementById("countdown-timer");
+      if (countdown) countdown.textContent = countdownValue;
+      let interval = setInterval(() => {
+        countdownValue--;
+        if (countdownValue <= 0) {
+          clearInterval(interval);
+        }
+        if (countdown) countdown.textContent = countdownValue;
+      }, 1000);
+    }
+
+  </script>
+  <script>
+    function openFolder(folder) {
+      if (folder === 'Deterrent_Terminal.html') {
+        document.getElementById('desktop').style.display = 'none';
+        document.getElementById('terminal-screen').style.display = 'block';
+      }
+    }
+    window.addEventListener("message", (event) => {
+      if (event.data === "goToDesktop") {
+        document.getElementById('terminal-screen').style.display = 'none';
+        document.getElementById('desktop').style.display = 'block';
+      }
+    });
+
+    function deductGlobalTime(seconds) {
+      if (typeof window.countdownSeconds !== 'undefined') {
+        window.countdownSeconds = Math.max(0, window.countdownSeconds - seconds);
+        const el = document.getElementById("countdown");
+        let m = Math.floor(window.countdownSeconds / 60);
+        let s = window.countdownSeconds % 60;
+        el.textContent = `Time Remaining: ${(m < 10 ? '0' : '') + m}:${(s < 10 ? '0' : '') + s}`;
+      }
+    }
+
+    function startMinigame() {
+      let countdownValue = 20;
+      let countdown = document.getElementById("countdown-timer");
+      if (countdown) countdown.textContent = countdownValue;
+      let interval = setInterval(() => {
+        countdownValue--;
+        if (countdownValue <= 0) {
+          clearInterval(interval);
+        }
+        if (countdown) countdown.textContent = countdownValue;
+      }, 1000);
+    }
+
+  </script>
+  <div id="terminal-screen" style="display:none;">
+
+
+
+
+  </div>
+</body>
+
+</html>
+<script>
+  function showSystemOnlineScreen() {
+    const onlineScreen = document.getElementById("system-online-screen");
+    onlineScreen.style.display = "block";
+    setTimeout(() => {
+      onlineScreen.style.display = "none";
+      document.getElementById("screen-desktop").style.display = "block";
+      document.getElementById("chat-notification").style.display = "block";
+    }, 2000 / speedFactor);
+  }
+
+  function goToDesktop() {
+    document.getElementById('folderFrame').style.display = 'none';
+    document.getElementById('screen-desktop').style.display = 'block';
+  }
+
+  function openFolder(page) {
+    document.getElementById('screen-desktop').style.display = 'none';
+    const frame = document.getElementById('folderFrame');
+    frame.src = page;
+    frame.style.display = 'block';
+  }
+
+  function enableFolders() {
+    document.querySelectorAll('.folder').forEach(folder => {
+      folder.classList.add('active');
+      folder.style.pointerEvents = 'auto';
+      folder.style.opacity = 1;
+    });
+  }
+
+  function deductGlobalTime(seconds) {
+    if (typeof window.countdownSeconds !== 'undefined') {
+      window.countdownSeconds = Math.max(0, window.countdownSeconds - seconds);
+      const el = document.getElementById("countdown");
+      let m = Math.floor(window.countdownSeconds / 60);
+      let s = window.countdownSeconds % 60;
+      el.textContent = `Time Remaining: ${(m < 10 ? '0' : '') + m}:${(s < 10 ? '0' : '') + s}`;
+    }
+  }
+
+  function startMinigame() {
+    let countdownValue = 20;
+    let countdown = document.getElementById("countdown-timer");
+    if (countdown) countdown.textContent = countdownValue;
+    let interval = setInterval(() => {
+      countdownValue--;
+      if (countdownValue <= 0) {
+        clearInterval(interval);
+      }
+      if (countdown) countdown.textContent = countdownValue;
+    }, 1000);
+  }
+
+</script>
+<script>
+  // Terminal and Minigame logic (from Terminal.html, adapted)
+  let phase = 0;
+  let countdownInterval = null;
+  const output = document.getElementById("terminal-output");
+  const input = document.getElementById("terminal-input");
+  function print(text) {
+    output.textContent += "\n" + text;
+    output.scrollTop = output.scrollHeight;
+  }
+  function showTerminal() {
+    document.getElementById('screen-desktop').style.display = 'none';
+    document.getElementById('terminal-section').style.display = 'block';
+    input.focus();
+  }
+  function hideTerminal() {
+    document.getElementById('terminal-section').style.display = 'none';
+    document.getElementById('screen-desktop').style.display = 'block';
+  }
+  function triggerMinigame() {
+    // ⏸️ Pause the global countdown when the minigame warning popup appears
+  window.timerPaused = true;
+    const overlay = document.getElementById("minigame-overlay");
+    const warning = document.getElementById("warning-box");
+    const gameBox = document.getElementById("game-box");
+    overlay.style.display = "flex";
+    warning.style.display = "block";
+    gameBox.style.display = "none";
+    resetMinigameCountdown();
+  }
+  function resetMinigameCountdown() {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+    const countdownEl = document.getElementById("countdown-timer");
+    countdownEl.textContent = "20";
+  }
+function startMinigame() {
+  const warning = document.getElementById("warning-box");
+  const gameBox = document.getElementById("game-box");
+
+  // Cleanup
+  document.querySelectorAll('#game-box .pixel').forEach(p => p.remove());
+
+  // ⏸️ Pause main countdown
+  window.timerPaused = true;
+
+  warning.style.display = "none";
+  gameBox.style.display = "block";
+
+  resetMinigameCountdown();
+
+  let countdownValue = 20;
+  const countdownEl = document.getElementById("countdown-timer");
+  countdownEl.textContent = countdownValue;
+
+  countdownInterval = setInterval(() => {
+    countdownValue--;
+    countdownEl.textContent = countdownValue;
+    if (countdownValue <= 0) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+  }, 1000);
+
+  runGame();
+}
+  function runGame() {
+    const gameBox = document.getElementById("game-box");
+    const cursorDot = document.getElementById("cursor-dot");
+    const overlay = document.getElementById("minigame-overlay");
+    let difficulty = Math.floor(Math.random() * 4) + 1;
+    let pixels = [];
+    let width = gameBox.offsetWidth;
+    let height = gameBox.offsetHeight;
+    let mouseX = width / 2;
+    let mouseY = height / 2;
+    gameBox.onmousemove = e => {
+      const rect = gameBox.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      cursorDot.style.left = mouseX + 'px';
+      cursorDot.style.top = mouseY + 'px';
+    };
+    let gameOver = false;
+   function spawnPixel() {
+  let x = Math.random() * width;
+  let y = Math.random() * height;
+
+  // Create and place a marker
+  const marker = document.createElement("div");
+  marker.className = "pixel-marker";
+  marker.style.left = x + "px";
+  marker.style.top = y + "px";
+  gameBox.appendChild(marker);
+
+  // Spawn actual pixel after short delay
+  setTimeout(() => {
+    gameBox.removeChild(marker);
+
+    const p = document.createElement("div");
+    p.className = "pixel";
+    p.style.left = x + "px";
+    p.style.top = y + "px";
+    gameBox.appendChild(p);
+    pixels.push({ el: p, dx: (mouseX - x) / 80 * difficulty, dy: (mouseY - y) / 80 * difficulty });
+  }, 300);
+}
+
+    let interval = setInterval(() => {
+      if (gameOver) return;
+      spawnPixel();
+    }, 400 / difficulty);
+    let frame = setInterval(() => {
+      for (let p of pixels) {
+        let px = parseFloat(p.el.style.left);
+        let py = parseFloat(p.el.style.top);
+        px += p.dx;
+        py += p.dy;
+        p.el.style.left = px + "px";
+        p.el.style.top = py + "px";
+       if (Math.abs(px - mouseX) < 10 && Math.abs(py - mouseY) < 10) {
+  clearInterval(interval);
+  clearInterval(frame);
+  gameOver = true;
+  alert("Hit detected! -30 seconds penalty.");
+window.timerPaused = false; // Unpause only after alert is dismissed
+deductGlobalTime(30);
+overlay.style.display = "none";
+resetMinigameCountdown();
+  return;
+}
+      }
+    }, 30);
+  setTimeout(() => {
+  if (!gameOver) {
+    clearInterval(interval);
+    clearInterval(frame);
+    overlay.style.display = "none";
+    alert("No threat detected.");
+window.timerPaused = false; // Unpause only after alert is dismissed
+resetMinigameCountdown();
+  }
+}, 20000);
+  }
+  
+function showSecurityBreach() {
+  const overlay = document.getElementById("security-breach-overlay");
+  overlay.style.display = "flex";
+  overlay.style.animation = "flashRed 1.5s infinite";
+}
+
+
+function hideSecurityBreach() {
+  const overlay = document.getElementById("security-breach-overlay");
+  const breachText = document.getElementById("breach-text");
+
+  const text = breachText.textContent;
+  breachText.innerHTML = ""; // Clear original text
+
+  [...text].forEach((char, i) => {
+    const span = document.createElement("span");
+    span.textContent = char;
+    span.style.display = "inline-block";
+    span.style.animation = `disintegrateLetter 0.5s ease forwards`;
+    span.style.animationDelay = `${i * 0.08}s`;
+    breachText.appendChild(span);
+  });
+
+  // Trigger screen distortion
+  overlay.style.animation = "screenDistort 1.5s ease";
+
+  // Clean up after animation
+  setTimeout(() => {
+    overlay.style.display = "none";
+    overlay.style.animation = "none";
+    breachText.textContent = "SECURITY BREACH"; // Reset for reuse
+  }, 2000);
+}
+
+
+
+// Add CSS animation
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  @keyframes flashRed {
+    0% { background-color: red; }
+    50% { background-color: black; color: red; }
+    100% { background-color: red; }
+  }
+`;
+document.head.appendChild(styleSheet);
+
+
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      const cmd = input.value.trim().toLowerCase();
+      input.value = "";
+      print("> " + cmd);
+      if (phase === 0) {
+        switch (cmd) {
+          case "help":
+            print("Available Commands:\n- help\n- status\n- search [firstname_lastname]\n- shutdown system\n- reset");
+            break;
+          case "status":
+            print("Firewall system is DOWN. Calibration in progress.");
+            setTimeout(triggerMinigame, 2000);
+            break;
+          case "search [laura_edwards]":
+            print("User Terminated.");
+            document.getElementById("terminal-input").disabled = true;
+            document.getElementById("countdown").style.display = "none";
+            pendingLauraSearch = true;
+            document.getElementById("chat-notification").style.display = "block";
+            break;
+          case "reset":
+            window.location.href = "index.html?skipToChat=true";
+            break;
+          case "shutdown system":
+            phase = 1;
+            print("PHASE 1 | Input the correct code: _.{}.svr");
+            break;
+          default:
+            print("Unknown command. Type help for a list of valid commands.");
+            setTimeout(triggerMinigame, 2000);
+        }
+      } else if (phase === 1) {
+  if (cmd === "terminate.administrator.server") {
+    phase = 2;
+    print("Decryption successful. Phase 1 complete.\nPHASE 2 | Input the correct code: _.sec.sys");
+    showSecurityBreach(); // <-- show flashing breach
+  } else {
+          print("Decryption Invalid.");
+          setTimeout(triggerMinigame, 2000);
+        }
+      } else if (phase === 2) {
+  if (cmd === "terminate.security.system") {
+    phase = 3;
+    print("Decryption successful. Phase 2 complete.\nPHASE 3 | Input the correct code: del.{}.sys");
+    hideSecurityBreach(); // <-- stop flashing breach
+  } else {
+          print("Decryption Invalid.");
+          setTimeout(triggerMinigame, 2000);
+        }
+      } else if (phase === 3) {
+  if (cmd === "delete.administrator.system") {
+    print("Phases complete.");
+    document.getElementById("terminal-input").disabled = true;
+    document.getElementById("countdown").style.display = "none";
+
+    crumbleTerminal(() => {
+      pendingPhase3Completion = true;
+      document.getElementById("chat-notification").style.display = "block";
+    });
+  }
+
+ else {
+          print("Decryption Invalid.");
+          setTimeout(triggerMinigame, 2000);
+        }
+      }
+    }
+  });
+</script>
+<script>
+  document.getElementById("chat-notification").addEventListener("click", () => {
+    document.getElementById("chat-notification").style.display = "none";
+    if (pendingPhase3Completion) {
+      launchChat(false, true);
+      pendingPhase3Completion = false;
+    } else if (pendingLauraSearch) {
+      launchChat(true);
+      pendingLauraSearch = false;
+    } else if (useTimerExpirationDialogue) {
+      launchChat(false, false, true);
+    } else {
+      launchChat(false);
+    }
+  });
+</script>
